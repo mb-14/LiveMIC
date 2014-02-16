@@ -280,7 +280,7 @@ static SLresult openSLRecOpen(OPENSL_STREAM *p){
     						&(p->recorderConfig));
         if (SL_RESULT_SUCCESS != result) goto end_recopen;
 
-    SLint32 streamType = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
+    SLint32 streamType = ((SLuint32) 0x00000003);
 
     result = (*p->recorderConfig)->SetConfiguration(p->recorderConfig, SL_ANDROID_KEY_RECORDING_PRESET, &streamType, sizeof(SLint32));
     	if (SL_RESULT_SUCCESS != result) goto end_recopen;

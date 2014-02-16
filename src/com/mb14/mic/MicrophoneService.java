@@ -15,6 +15,7 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.IBinder;
 import android.util.Log;
+import opensl.opensl;
 
 public class MicrophoneService extends Service{
 	
@@ -43,10 +44,13 @@ public class MicrophoneService extends Service{
     public void onCreate() {   	
     	// notification service
     	mNotificationManager  = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);    	// create input and output streams
-        mInBufferSize  = AudioRecord.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_IN_MONO, mFormat);
+      /*
+    	mInBufferSize  = AudioRecord.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_IN_MONO, mFormat);
         mOutBufferSize = AudioTrack.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_OUT_MONO, mFormat);
         mAudioInput = new AudioRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION, mSampleRate, AudioFormat.CHANNEL_IN_MONO, mFormat, mInBufferSize);
         mAudioOutput = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, AudioFormat.CHANNEL_OUT_MONO, mFormat, mOutBufferSize, AudioTrack.MODE_STREAM);
+        
+        */
         record();
 		showNotification();
     }
@@ -54,8 +58,9 @@ public class MicrophoneService extends Service{
 
     @Override
     public void onDestroy() {    	    	
-    	mAudioInput.release();
-    	mAudioOutput.release();
+    	//mAudioInput.release();
+    	//mAudioOutput.release();
+    	opensl.stop_process();
     	mNotificationManager.cancel(0);
     	mNotificationManager = null;
 		super.onDestroy();
@@ -70,8 +75,8 @@ public class MicrophoneService extends Service{
 			public void run() {		
 				android.os.Process.setThreadPriority
 		         (android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-			
-				recordLoop();
+				opensl.start_process();
+			//	recordLoop();
 
 			}
 			byte b[] = new byte[mInBufferSize];
