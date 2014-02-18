@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BUFFERFRAMES 1024
 #define VECSAMPS_MONO 64
 #define VECSAMPS_STEREO 128
-#define SR 44100
+#define SR 48000
 #define  LOG_TAG    "MIC"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 static int on;

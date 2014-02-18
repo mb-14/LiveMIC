@@ -6,16 +6,8 @@
 /home/mb14/Microphone/res/drawable-mdpi/ic_launcher.png \
 /home/mb14/Microphone/res/drawable-xhdpi/ic_launcher.png \
 /home/mb14/Microphone/res/drawable-xxhdpi/ic_launcher.png \
-/home/mb14/Microphone/bin/res/drawable-hdpi/icon.png \
-/home/mb14/Microphone/bin/res/drawable-hdpi/status.png \
-/home/mb14/Microphone/bin/res/drawable-hdpi/mic.png \
 /home/mb14/Microphone/bin/res/drawable-hdpi/ic_launcher.png \
-/home/mb14/Microphone/bin/res/drawable-hdpi/red.png \
-/home/mb14/Microphone/bin/res/drawable-mdpi/icon.png \
-/home/mb14/Microphone/bin/res/drawable-mdpi/status.png \
 /home/mb14/Microphone/bin/res/drawable-mdpi/ic_launcher.png \
-/home/mb14/Microphone/bin/res/drawable-ldpi/icon.png \
-/home/mb14/Microphone/bin/res/drawable-ldpi/status.png \
 /home/mb14/Microphone/bin/res/drawable-xhdpi/ic_launcher.png \
 /home/mb14/Microphone/bin/res/drawable-xxhdpi/ic_launcher.png \
 /home/mb14/Microphone/bin/AndroidManifest.xml \
