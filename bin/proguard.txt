@@ -1,0 +1,6 @@
+# view AndroidManifest.xml #generated:11
+-keep class com.mb14.mic.MicrophoneActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:22
+-keep class com.mb14.mic.MicrophoneService { <init>(...); }
+

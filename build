@@ -1,0 +1,5 @@
+#!/bin/sh
+export NDK=$HOME/android-ndk-r9c
+$NDK/ndk-build clean
+$NDK/ndk-build TARGET_PLATFORM=android-15 V=1
+ant debug install

@@ -34,7 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VECSAMPS_MONO 64
 #define VECSAMPS_STEREO 128
 #define SR 44100
-
+#define  LOG_TAG    "MIC"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 static int on;
 
 void start_process() {
@@ -42,7 +43,10 @@ void start_process() {
   int samps, i, j;
   float  inbuffer[VECSAMPS_MONO], outbuffer[VECSAMPS_STEREO];
   p = android_OpenAudioDevice(SR,1,2,BUFFERFRAMES);
-  if(p == NULL) return; 
+  if(p == NULL) {
+	LOGI("Error opening audio");
+	return;
+  } 
   on = 1;
   while(on) {
    samps = android_AudioIn(p,inbuffer,VECSAMPS_MONO);

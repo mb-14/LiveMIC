@@ -1,56 +1,47 @@
 /*
-  opensl_io.c:
-  Android OpenSL input/output module
-  Copyright (c) 2012, Victor Lazzarini
-  All rights reserved.
+opensl_io.c:
+Android OpenSL input/output module
+Copyright (c) 2012, Victor Lazzarini
+All rights reserved.
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-  * Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-  * Neither the name of the <organization> nor the
-  names of its contributors may be used to endorse or promote products
-  derived from this software without specific prior written permission.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the <organization> nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "opensl_io.h"
+#include <android/log.h>
+#define  LOG_TAG    "MIC"
+#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#define SL_ANDROID_KEY_RECORDING_PRESET ((const SLchar*) "androidRecordingPreset")
+#define SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION ((SLuint32) 0x00000004)
 #define CONV16BIT 32768
 #define CONVMYFLT (1./32768.)
-#define GRAIN 4
 
-// static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
-
-static SLresult bqPlayerCallback(
-        SLAndroidBufferQueueItf caller,
-        void *pCallbackContext,            /* input */
-        void *pBufferContext,              /* input */
-        void *pBufferData,                 /* input */
-        SLuint32 dataSize,                 /* input */
-        SLuint32 dataUsed,                 /* input */
-        const SLAndroidBufferItem *pItems, /* input */
-        SLuint32 itemsLength               /* input */);
-
-
+static void* createThreadLock(void);
+static int waitThreadLock(void *lock);
+static void notifyThreadLock(void *lock);
+static void destroyThreadLock(void *lock);
+static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
 static void bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context);
-circular_buffer* create_circular_buffer(int bytes);
-int checkspace_circular_buffer(circular_buffer *p, int writeCheck);
-int read_circular_buffer_bytes(circular_buffer *p, char *out, int bytes);
-int write_circular_buffer_bytes(circular_buffer *p, const char *in, int bytes);
-void free_circular_buffer (circular_buffer *p);
 
 // creates the OpenSL ES audio engine
 static SLresult openSLCreateEngine(OPENSL_STREAM *p)
@@ -81,7 +72,7 @@ static SLresult openSLPlayOpen(OPENSL_STREAM *p)
 
   if(channels){
     // configure audio source
-    SLDataLocator_AndroidBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDBUFFERQUEUE, 2};
+    SLDataLocator_AndroidSimpleBufferQueue loc_bufq = {SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2};
 
     switch(sr){
 
@@ -125,9 +116,7 @@ static SLresult openSLPlayOpen(OPENSL_STREAM *p)
       return -1;
     }
    
-    const SLInterfaceID ids[] = {SL_IID_VOLUME};
-    const SLboolean req[] = {SL_BOOLEAN_FALSE};
-    result = (*p->engineEngine)->CreateOutputMix(p->engineEngine, &(p->outputMixObject), 1, ids, req);
+    result = (*p->engineEngine)->CreateOutputMix(p->engineEngine, &(p->outputMixObject), 0, NULL, NULL);
     if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
     // realize the output mix
@@ -148,10 +137,10 @@ static SLresult openSLPlayOpen(OPENSL_STREAM *p)
     SLDataSink audioSnk = {&loc_outmix, NULL};
 
     // create audio player
-    const SLInterfaceID ids1[] = {SL_IID_ANDROIDBUFFERQUEUESOURCE};
-    const SLboolean req1[] = {SL_BOOLEAN_TRUE};
+    const SLInterfaceID ids1[] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE,SL_IID_VOLUME};
+    const SLboolean req1[] = {SL_BOOLEAN_TRUE,SL_BOOLEAN_TRUE};
     result = (*p->engineEngine)->CreateAudioPlayer(p->engineEngine, &(p->bqPlayerObject), &audioSrc, &audioSnk,
-						   1, ids1, req1);
+						   2, ids1, req1);
     if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
     // realize the player
@@ -163,7 +152,7 @@ static SLresult openSLPlayOpen(OPENSL_STREAM *p)
     if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
     // get the buffer queue interface
-    result = (*p->bqPlayerObject)->GetInterface(p->bqPlayerObject,  SL_IID_ANDROIDBUFFERQUEUESOURCE,
+    result = (*p->bqPlayerObject)->GetInterface(p->bqPlayerObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 						&(p->bqPlayerBufferQueue));
     if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
@@ -173,13 +162,6 @@ static SLresult openSLPlayOpen(OPENSL_STREAM *p)
 
     // set the player's state to playing
     result = (*p->bqPlayerPlay)->SetPlayState(p->bqPlayerPlay, SL_PLAYSTATE_PLAYING);
-
-    if((p->playBuffer = (short *) calloc(p->outBufSamples, sizeof(short))) == NULL) {
-      return -1;
-    }
-
-    (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue, NULL,
-				       p->playBuffer,p->outBufSamples*sizeof(short), NULL, 0);
  
   end_openaudio:
     return result;
@@ -256,11 +238,22 @@ static SLresult openSLRecOpen(OPENSL_STREAM *p){
 
     // create audio recorder
     // (requires the RECORD_AUDIO permission)
-    const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
-    const SLboolean req[1] = {SL_BOOLEAN_TRUE};
+    const SLInterfaceID id[2] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE,SL_IID_ANDROIDCONFIGURATION};
+    const SLboolean req[2] = {SL_BOOLEAN_TRUE,SL_BOOLEAN_TRUE};
     result = (*p->engineEngine)->CreateAudioRecorder(p->engineEngine, &(p->recorderObject), &audioSrc,
-						     &audioSnk, 1, id, req);
+						     &audioSnk, 2, id, req);
     if (SL_RESULT_SUCCESS != result) goto end_recopen;
+	
+	  // get the recorderconfig
+    result = (*p->recorderObject)->GetInterface(p->recorderObject, SL_IID_ANDROIDCONFIGURATION,
+    						&(p->recorderConfig));
+        if (SL_RESULT_SUCCESS != result)
+			goto end_recopen;
+
+    SLuint32 streamType = SL_ANDROID_RECORDING_PRESET_VOICE_COMMUNICATION;
+    result = (*p->recorderConfig)->SetConfiguration(p->recorderConfig, SL_ANDROID_KEY_RECORDING_PRESET, &streamType, sizeof(SLuint32));
+    	if (SL_RESULT_SUCCESS != result)
+	        goto end_recopen;
 
     // realize the audio recorder
     result = (*p->recorderObject)->Realize(p->recorderObject, SL_BOOLEAN_FALSE);
@@ -275,29 +268,12 @@ static SLresult openSLRecOpen(OPENSL_STREAM *p){
 						&(p->recorderBufferQueue));
     if (SL_RESULT_SUCCESS != result) goto end_recopen;
 
-    // get the recorderconfig
-    result = (*p->recorderObject)->GetInterface(p->recorderObject, SL_IID_ANDROIDCONFIGURATION,
-    						&(p->recorderConfig));
-        if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
-    SLint32 streamType = ((SLuint32) 0x00000003);
-
-    result = (*p->recorderConfig)->SetConfiguration(p->recorderConfig, SL_ANDROID_KEY_RECORDING_PRESET, &streamType, sizeof(SLint32));
-    	if (SL_RESULT_SUCCESS != result) goto end_recopen;
-
     // register callback on the buffer queue
     result = (*p->recorderBufferQueue)->RegisterCallback(p->recorderBufferQueue, bqRecorderCallback,
 							 p);
     if (SL_RESULT_SUCCESS != result) goto end_recopen;
     result = (*p->recorderRecord)->SetRecordState(p->recorderRecord, SL_RECORDSTATE_RECORDING);
 
-    if((p->recBuffer = (short *) calloc(p->inBufSamples, sizeof(short))) == NULL) {
-      return -1;
-    }
-
-    (*p->recorderBufferQueue)->Enqueue(p->recorderBufferQueue, 
-				       p->recBuffer, p->inBufSamples*sizeof(short));
-     
   end_recopen: 
     return result;
   }
@@ -311,10 +287,6 @@ static void openSLDestroyEngine(OPENSL_STREAM *p){
 
   // destroy buffer queue audio player object, and invalidate all associated interfaces
   if (p->bqPlayerObject != NULL) {
-    SLuint32 state = SL_PLAYSTATE_PLAYING;
-    (*p->bqPlayerPlay)->SetPlayState(p->bqPlayerPlay, SL_PLAYSTATE_STOPPED);
-    while(state != SL_PLAYSTATE_STOPPED)
-      (*p->bqPlayerPlay)->GetPlayState(p->bqPlayerPlay, &state);
     (*p->bqPlayerObject)->Destroy(p->bqPlayerObject);
     p->bqPlayerObject = NULL;
     p->bqPlayerPlay = NULL;
@@ -324,15 +296,10 @@ static void openSLDestroyEngine(OPENSL_STREAM *p){
 
   // destroy audio recorder object, and invalidate all associated interfaces
   if (p->recorderObject != NULL) {
-   SLuint32 state = SL_PLAYSTATE_PLAYING;
-    (*p->recorderRecord)->SetRecordState(p->recorderRecord, SL_RECORDSTATE_STOPPED);
-    while(state != SL_RECORDSTATE_STOPPED)
-      (*p->recorderRecord)->GetRecordState(p->recorderRecord, &state);
     (*p->recorderObject)->Destroy(p->recorderObject);
     p->recorderObject = NULL;
     p->recorderRecord = NULL;
     p->recorderBufferQueue = NULL;
-    p->recorderConfig = NULL;
   }
 
   // destroy output mix object, and invalidate all associated interfaces
@@ -355,34 +322,34 @@ static void openSLDestroyEngine(OPENSL_STREAM *p){
 OPENSL_STREAM *android_OpenAudioDevice(int sr, int inchannels, int outchannels, int bufferframes){
   
   OPENSL_STREAM *p;
-  p = (OPENSL_STREAM *) malloc(sizeof(OPENSL_STREAM));
-  memset(p, 0, sizeof(OPENSL_STREAM));
+  p = (OPENSL_STREAM *) calloc(sizeof(OPENSL_STREAM),1);
+
   p->inchannels = inchannels;
   p->outchannels = outchannels;
   p->sr = sr;
+  p->inlock = createThreadLock();
+  p->outlock = createThreadLock();
  
   if((p->outBufSamples  =  bufferframes*outchannels) != 0) {
-    if((p->outputBuffer = (short *) calloc(p->outBufSamples, sizeof(short))) == NULL) {
+    if((p->outputBuffer[0] = (short *) calloc(p->outBufSamples, sizeof(short))) == NULL ||
+       (p->outputBuffer[1] = (short *) calloc(p->outBufSamples, sizeof(short))) == NULL) {
       android_CloseAudioDevice(p);
       return NULL;
     }
   }
 
   if((p->inBufSamples  =  bufferframes*inchannels) != 0){
-    if((p->inputBuffer = (short *) calloc(p->inBufSamples, sizeof(short))) == NULL){
+    if((p->inputBuffer[0] = (short *) calloc(p->inBufSamples, sizeof(short))) == NULL ||
+       (p->inputBuffer[1] = (short *) calloc(p->inBufSamples, sizeof(short))) == NULL){
       android_CloseAudioDevice(p);
       return NULL; 
     }
   }
 
-  if((p->outrb = create_circular_buffer(p->outBufSamples*sizeof(short)*4)) == NULL) {
-      android_CloseAudioDevice(p);
-      return NULL; 
-  }
- if((p->inrb = create_circular_buffer(p->outBufSamples*sizeof(short)*4)) == NULL) {
-      android_CloseAudioDevice(p);
-      return NULL; 
-  }
+  p->currentInputIndex = 0;
+  p->currentOutputBuffer  = 0;
+  p->currentInputIndex = p->inBufSamples;
+  p->currentInputBuffer = 0; 
 
   if(openSLCreateEngine(p) != SL_RESULT_SUCCESS) {
     android_CloseAudioDevice(p);
@@ -399,7 +366,9 @@ OPENSL_STREAM *android_OpenAudioDevice(int sr, int inchannels, int outchannels, 
     return NULL;
   }  
 
-  p->time = 0.;
+  notifyThreadLock(p->outlock);
+  notifyThreadLock(p->inlock);
+
   return p;
 }
 
@@ -411,35 +380,39 @@ void android_CloseAudioDevice(OPENSL_STREAM *p){
 
   openSLDestroyEngine(p);
 
-  if (p->outputBuffer != NULL) {
-    free(p->outputBuffer);
-    p->outputBuffer= NULL;
+  if (p->inlock != NULL) {
+    notifyThreadLock(p->inlock);
+    destroyThreadLock(p->inlock);
+    p->inlock = NULL;
+  }
+    
+  if (p->outlock != NULL) {
+    notifyThreadLock(p->outlock);
+    destroyThreadLock(p->outlock);
+    p->inlock = NULL;
+  }
+    
+  if (p->outputBuffer[0] != NULL) {
+    free(p->outputBuffer[0]);
+    p->outputBuffer[0] = NULL;
   }
 
-  if (p->inputBuffer != NULL) {
-    free(p->inputBuffer);
-    p->inputBuffer = NULL;
+  if (p->outputBuffer[1] != NULL) {
+    free(p->outputBuffer[1]);
+    p->outputBuffer[1] = NULL;
   }
 
-  if (p->playBuffer != NULL) {
-    free(p->playBuffer);
-    p->playBuffer = NULL;
+  if (p->inputBuffer[0] != NULL) {
+    free(p->inputBuffer[0]);
+    p->inputBuffer[0] = NULL;
   }
 
-  if (p->recBuffer != NULL) {
-    free(p->recBuffer);
-    p->recBuffer = NULL;
+  if (p->inputBuffer[1] != NULL) {
+    free(p->inputBuffer[1]);
+    p->inputBuffer[1] = NULL;
   }
-
-  free_circular_buffer(p->inrb);
-  free_circular_buffer(p->outrb);
 
   free(p);
-}
-
-// returns timestamp of the processed stream
-double android_GetTimestamp(OPENSL_STREAM *p){
-  return p->time;
 }
 
 
@@ -447,129 +420,116 @@ double android_GetTimestamp(OPENSL_STREAM *p){
 void bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
   OPENSL_STREAM *p = (OPENSL_STREAM *) context;
-  int bytes = p->inBufSamples*sizeof(short);
-  write_circular_buffer_bytes(p->inrb, (char *) p->recBuffer,bytes);
-  (*p->recorderBufferQueue)->Enqueue(p->recorderBufferQueue,p->recBuffer,bytes);
-
+  notifyThreadLock(p->inlock);
 }
  
 // gets a buffer of size samples from the device
 int android_AudioIn(OPENSL_STREAM *p,float *buffer,int size){
   short *inBuffer;
-  int i, bytes = size*sizeof(short);
-  if(p == NULL ||  p->inBufSamples ==  0) return 0;
-  bytes = read_circular_buffer_bytes(p->inrb,(char *)p->inputBuffer,bytes);
-  size = bytes/sizeof(short);
+  int i, bufsamps = p->inBufSamples, index = p->currentInputIndex;
+  if(p == NULL || bufsamps ==  0) return 0;
+
+  inBuffer = p->inputBuffer[p->currentInputBuffer];
   for(i=0; i < size; i++){
-    buffer[i] = (float) p->inputBuffer[i]*CONVMYFLT;
+    if (index >= bufsamps) {
+      waitThreadLock(p->inlock);
+      (*p->recorderBufferQueue)->Enqueue(p->recorderBufferQueue, 
+					 inBuffer,bufsamps*sizeof(short));
+      p->currentInputBuffer = (p->currentInputBuffer ? 0 : 1);
+      index = 0;
+      inBuffer = p->inputBuffer[p->currentInputBuffer];
+    }
+    buffer[i] = (float) inBuffer[index++]*CONVMYFLT;
   }
-  if(p->outchannels == 0) p->time += (double) size/(p->sr*p->inchannels);
-  return size;
+  p->currentInputIndex = index;
+  return i;
 }
 
-
-
-
-
 // this callback handler is called every time a buffer finishes playing
-SLresult bqPlayerCallback(
-        SLAndroidBufferQueueItf caller,
-        void *context,            /* input */
-        void *pBufferContext,              /* input */
-        void *pBufferData,                 /* input */
-        SLuint32 dataSize,                 /* input */
-        SLuint32 dataUsed,                 /* input */
-        const SLAndroidBufferItem *pItems, /* input */
-        SLuint32 itemsLength               /* input */)
+void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
 {
   OPENSL_STREAM *p = (OPENSL_STREAM *) context;
-  int bytes = p->outBufSamples*sizeof(short);
-  read_circular_buffer_bytes(p->outrb, (char *) p->playBuffer,bytes);
-  (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue, NULL,
-		  p->playBuffer,bytes, NULL, 0);
-  return 0;
+  notifyThreadLock(p->outlock);
 }
 
 // puts a buffer of size samples to the device
 int android_AudioOut(OPENSL_STREAM *p, float *buffer,int size){
 
-  short *outBuffer, *inBuffer;
-  int i, bytes = size*sizeof(short);
-  if(p == NULL  ||  p->outBufSamples ==  0)  return 0;
+  short *outBuffer;
+  int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
+  if(p == NULL  || bufsamps ==  0)  return 0;
+  outBuffer = p->outputBuffer[p->currentOutputBuffer];
+
   for(i=0; i < size; i++){
-    p->outputBuffer[i] = (short) (buffer[i]*CONV16BIT);
+    outBuffer[index++] = (short) (buffer[i]*CONV16BIT);
+    if (index >= p->outBufSamples) {
+      waitThreadLock(p->outlock);
+      (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue, 
+					 outBuffer,bufsamps*sizeof(short));
+      p->currentOutputBuffer = (p->currentOutputBuffer ?  0 : 1);
+      index = 0;
+      outBuffer = p->outputBuffer[p->currentOutputBuffer];
+    }
   }
-  bytes = write_circular_buffer_bytes(p->outrb, (char *) p->outputBuffer,bytes);
-  p->time += (double) size/(p->sr*p->outchannels);
-  return bytes/sizeof(short);
+  p->currentOutputIndex = index;
+  return i;
 }
 
-circular_buffer* create_circular_buffer(int bytes){
-  circular_buffer *p;
-  if ((p = calloc(1, sizeof(circular_buffer))) == NULL) {
+//----------------------------------------------------------------------
+// thread Locks
+// to ensure synchronisation between callbacks and processing code
+void* createThreadLock(void)
+{
+  threadLock  *p;
+  p = (threadLock*) malloc(sizeof(threadLock));
+  if (p == NULL)
+    return NULL;
+  memset(p, 0, sizeof(threadLock));
+  if (pthread_mutex_init(&(p->m), (pthread_mutexattr_t*) NULL) != 0) {
+    free((void*) p);
     return NULL;
   }
-  p->size = bytes;
-  p->wp = p->rp = 0;
-   
-  if ((p->buffer = calloc(bytes, sizeof(char))) == NULL) {
-    free (p);
+  if (pthread_cond_init(&(p->c), (pthread_condattr_t*) NULL) != 0) {
+    pthread_mutex_destroy(&(p->m));
+    free((void*) p);
     return NULL;
   }
+  p->s = (unsigned char) 1;
+
   return p;
 }
 
-int checkspace_circular_buffer(circular_buffer *p, int writeCheck){
-  int wp = p->wp, rp = p->rp, size = p->size;
-  if(writeCheck){
-    if (wp > rp) return rp - wp + size - 1;
-    else if (wp < rp) return rp - wp - 1;
-    else return size - 1;
+int waitThreadLock(void *lock)
+{
+  threadLock  *p;
+  int   retval = 0;
+  p = (threadLock*) lock;
+  pthread_mutex_lock(&(p->m));
+  while (!p->s) {
+    pthread_cond_wait(&(p->c), &(p->m));
   }
-  else {
-    if (wp > rp) return wp - rp;
-    else if (wp < rp) return wp - rp + size;
-    else return 0;
-  }	
+  p->s = (unsigned char) 0;
+  pthread_mutex_unlock(&(p->m));
 }
 
-int read_circular_buffer_bytes(circular_buffer *p, char *out, int bytes){
-  int remaining;
-  int bytesread, size = p->size;
-  int i=0, rp = p->rp;
-  char *buffer = p->buffer;
-  if ((remaining = checkspace_circular_buffer(p, 0)) == 0) {
-    return 0;
-  }
-  bytesread = bytes > remaining ? remaining : bytes;
-  for(i=0; i < bytesread; i++){
-    out[i] = buffer[rp++];
-    if(rp == size) rp = 0;
-  }
-  p->rp = rp;
-  return bytesread;
+void notifyThreadLock(void *lock)
+{
+  threadLock *p;
+  p = (threadLock*) lock;
+  pthread_mutex_lock(&(p->m));
+  p->s = (unsigned char) 1;
+  pthread_cond_signal(&(p->c));
+  pthread_mutex_unlock(&(p->m));
 }
 
-int write_circular_buffer_bytes(circular_buffer *p, const char *in, int bytes){
-  int remaining;
-  int byteswrite, size = p->size;
-  int i=0, wp = p->wp;
-  char *buffer = p->buffer;
-  if ((remaining = checkspace_circular_buffer(p, 1)) == 0) {
-    return 0;
-  }
-  byteswrite = bytes > remaining ? remaining : bytes;
-  for(i=0; i < byteswrite; i++){
-    buffer[wp++] = in[i];
-    if(wp == size) wp = 0;
-  }
-  p->wp = wp;
-  return byteswrite;
-}
-
-void
-free_circular_buffer (circular_buffer *p){
-  if(p == NULL) return;
-  free(p->buffer);
+void destroyThreadLock(void *lock)
+{
+  threadLock  *p;
+  p = (threadLock*) lock;
+  if (p == NULL)
+    return;
+  notifyThreadLock(p);
+  pthread_cond_destroy(&(p->c));
+  pthread_mutex_destroy(&(p->m));
   free(p);
 }

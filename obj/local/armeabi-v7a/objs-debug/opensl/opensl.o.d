@@ -6,15 +6,12 @@ obj/local/armeabi-v7a/objs-debug/opensl/opensl.o: jni/opensl.c \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_Android.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/stdlib.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/pthread.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/time.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/cdefs.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/cdefs_elf.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/android/api-level.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/string.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/malloc.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/alloca.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/strings.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/time.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/types.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/stdint.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/_types.h \
@@ -28,11 +25,9 @@ obj/local/armeabi-v7a/objs-debug/opensl/opensl.o: jni/opensl.c \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/linux/types.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/machine/kernel.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/sysmacros.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/memory.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/unistd.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/select.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/time.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/linux/time.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/siginfo.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/siginfo.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/signal.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/limits.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/limits.h \
@@ -41,14 +36,16 @@ obj/local/armeabi-v7a/objs-debug/opensl/opensl.o: jni/opensl.c \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/machine/limits.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/syslimits.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/page.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/string.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/malloc.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/signal.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/signal.h \
  /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/sigcontext.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/siginfo.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/siginfo.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/sysconf.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/linux/capability.h \
- /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/pathconf.h
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sched.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/stdlib.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/alloca.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/strings.h \
+ /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/memory.h
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/android/log.h:
 
@@ -64,9 +61,9 @@ jni/opensl_io.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_AndroidMetadata.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/SLES/OpenSLES_AndroidConfiguration.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/pthread.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/stdlib.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/time.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/cdefs.h:
 
@@ -74,13 +71,7 @@ jni/opensl_io.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/android/api-level.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/string.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/malloc.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/alloca.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/strings.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/time.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/types.h:
 
@@ -108,15 +99,11 @@ jni/opensl_io.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/sysmacros.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/memory.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/unistd.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/select.h:
-
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/time.h:
-
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/linux/time.h:
+
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/siginfo.h:
+
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/siginfo.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/signal.h:
 
@@ -134,18 +121,22 @@ jni/opensl_io.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/page.h:
 
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/string.h:
+
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/malloc.h:
+
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/signal.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/signal.h:
 
 /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/sigcontext.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm/siginfo.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sched.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/asm-generic/siginfo.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/stdlib.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/sys/sysconf.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/alloca.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/linux/capability.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/strings.h:
 
-/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/pathconf.h:
+/home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include/memory.h:

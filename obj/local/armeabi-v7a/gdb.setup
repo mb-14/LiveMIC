@@ -1,0 +1,4 @@
+set solib-search-path ./obj/local/armeabi-v7a
+directory /home/mb14/android-ndk-r9c/platforms/android-15/arch-arm/usr/include /home/mb14/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++ jni /home/mb14/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.6/include /home/mb14/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a/include /home/mb14/android-ndk-r9c/sources/cxx-stl/gnu-libstdc++/4.6/include/backward
+file ./obj/local/armeabi-v7a/app_process
+target remote :5039

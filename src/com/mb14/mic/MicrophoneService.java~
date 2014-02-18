@@ -118,7 +118,7 @@ public class MicrophoneService extends Service{
 	@SuppressWarnings("deprecation")
 	private void showNotification(){
 		String text = getString(R.string.app_name);
-		Notification notification = new Notification(R.drawable.ic_launcher, text, System.currentTimeMillis());
+		Notification notification = new Notification(R.drawable.status, text, System.currentTimeMillis());
 		Intent startIntent = new Intent(this,MicrophoneActivity.class);
 		startIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		PendingIntent intent = PendingIntent.getActivity(this, 0, startIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
