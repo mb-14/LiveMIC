@@ -19,20 +19,9 @@ import opensl.opensl;
 
 public class MicrophoneService extends Service{
 	
-	private static final String APP_TAG = "Microphone";
-	private static final int mSampleRate = 44100;
-	private static final int mFormat     = AudioFormat.ENCODING_PCM_16BIT;
+	private static final String APP_TAG = "LiveMIC"; 
+	private NotificationManager mNotificationManager;
 	
-	private AudioTrack              mAudioOutput;
-	private AudioRecord             mAudioInput;
-	private int                     mInBufferSize;
-	private int                     mOutBufferSize;
-	SharedPreferences               mSharedPreferences;
- 
-	private NotificationManager     mNotificationManager;
-	
-	
-	  
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -43,14 +32,7 @@ public class MicrophoneService extends Service{
     @Override
     public void onCreate() {   	
     	// notification service
-    	mNotificationManager  = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);    	// create input and output streams
-      /*
-    	mInBufferSize  = AudioRecord.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_IN_MONO, mFormat);
-        mOutBufferSize = AudioTrack.getMinBufferSize(mSampleRate, AudioFormat.CHANNEL_OUT_MONO, mFormat);
-        mAudioInput = new AudioRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION, mSampleRate, AudioFormat.CHANNEL_IN_MONO, mFormat, mInBufferSize);
-        mAudioOutput = new AudioTrack(AudioManager.STREAM_MUSIC, mSampleRate, AudioFormat.CHANNEL_OUT_MONO, mFormat, mOutBufferSize, AudioTrack.MODE_STREAM);
-        
-        */
+    	mNotificationManager  = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);  
         record();
 		showNotification();
     }
@@ -58,8 +40,6 @@ public class MicrophoneService extends Service{
 
     @Override
     public void onDestroy() {    	    	
-    	//mAudioInput.release();
-    	//mAudioOutput.release();
     	opensl.stop_process();
     	mNotificationManager.cancel(0);
     	mNotificationManager = null;
@@ -75,40 +55,7 @@ public class MicrophoneService extends Service{
 			public void run() {		
 				 setPriority(Thread.MAX_PRIORITY);
 				opensl.start_process();
-			//	recordLoop();
 
-			}
-			byte b[] = new byte[mInBufferSize];
-			private void recordLoop() {
-				if ( mAudioOutput.getState() != AudioTrack.STATE_INITIALIZED || mAudioInput.getState() != AudioTrack.STATE_INITIALIZED) {
-					return;
-				}
-				else {
-					
-					try {
-					
-						try { mAudioOutput.play(); }          catch (Exception e) { Log.e(APP_TAG, "Failed to start playback"); return; }
-						try { mAudioInput.startRecording(); } catch (Exception e) { Log.e(APP_TAG, "Failed to start recording"); mAudioOutput.stop(); return; }
-						
-						try {
-					        
-					        while(true) {
-					        	mAudioInput.read(b,0, mInBufferSize);
-					        	mAudioOutput.write(b, 0, b.length);
-					        }
-						}
-						catch (Exception e) {
-							Log.d(APP_TAG, "Error while recording, aborting.");
-						}
-			        
-				        
-					}
-					catch (Exception e) {
-						Log.d(APP_TAG, "Error somewhere in record loop.");				
-					}
-				}
-			
-		
 			}
 		};
 		

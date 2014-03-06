@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">MIC</string>
-	<string name="mic_active">MIC is active</string>
+	<string name="app_name">LiveMIC</string>
+	<string name="mic_active">LiveMIC is active</string>
 </resources>
