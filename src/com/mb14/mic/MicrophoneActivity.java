@@ -8,10 +8,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
-public class MicrophoneActivity extends Activity{
+public class
+        MicrophoneActivity extends Activity{
 	
 	private static final String APP_TAG         = "Microphone";
 	private static final String IS_SERVICE_STARTED = "isServiceStarted";
@@ -66,5 +70,20 @@ public class MicrophoneActivity extends Activity{
 		SharedPreferences.Editor editor = pref.edit();
 		editor.putBoolean(IS_SERVICE_STARTED, isStarted);
 		editor.commit();
-	}  
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		Intent i = new Intent(MicrophoneActivity.this,AboutActivity.class);
+		startActivity(i);
+		return true;
+	}
+  
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">LiveMIC</string>
-	<string name="mic_active">LiveMIC is active</string>
+	<string name="app_name">Pocket MIC</string>
+	<string name="mic_active">Pocket MIC is active</string>
+    <string name="title_activity_about">About</string>
 </resources>
